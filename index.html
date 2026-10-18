@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Origen Natural - Pulpas Orgánicas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        organic: {
+                            50: '#f6f7f6',
+                            100: '#e7ece6',
+                            200: '#ced9cb',
+                            300: '#abc0a6',
+                            400: '#83a17c',
+                            500: '#62835b',
+                            600: '#4c6846',
+                            700: '#3e533a',
+                            800: '#334330',
+                            900: '#2a3729',
+                        },
+                        accent: '#d4a373' // Earthy tone
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fdfdfc;
+            color: #2a3729;
+        }
+        .glass-header {
+            background: rgba(253, 253, 252, 0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .organic-shadow {
+            box-shadow: 0 10px 40px -10px rgba(76, 104, 70, 0.1);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f6f7f6; }
+        ::-webkit-scrollbar-thumb { background: #abc0a6; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #62835b; }
+        
+        /* Utility classes for hiding/showing views */
+        .view-hidden { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+
+    <!-- Navigation -->
+    <nav class="glass-header sticky top-0 z-50 px-6 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('store-view')">
+                <span class="text-3xl">🍃</span>
+                <span class="font-serif text-2xl font-bold text-organic-800 tracking-tight">Origen Natural</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <!-- Vendor Access Link -->
+                <a href="#" onclick="switchView('login-view')" class="text-xs font-semibold text-organic-500 hover:text-organic-800 tracking-widest uppercase transition-colors">
+                    Acceso Vendedor
+                </a>
+                <!-- Cart Button -->
+                <button onclick="toggleCart()" id="nav-cart-btn" class="relative bg-organic-100 hover:bg-organic-200 text-organic-800 p-2 rounded-full transition-colors flex items-center justify-center h-10 w-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8 relative">
+
+        <!-- ================= STORE VIEW (CLIENT) ================= -->
+        <section id="store-view" class="space-y-12 animate-fade-in">
+            <!-- Hero -->
+            <div class="text-center max-w-3xl mx-auto space-y-6 py-10">
+                <h1 class="font-serif text-5xl md:text-6xl font-bold text-organic-900 leading-tight">
+                    Pulpas 100% Orgánicas
+                </h1>
+                <p class="text-lg text-organic-600 font-light">
+                    Cultivadas con respeto a la tierra. Sin conservantes, sin azúcares añadidos. 
+                    Solo la esencia pura de la fruta llevada directamente a tu hogar.
+                </p>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="products-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- ================= LOGIN VIEW (VENDOR) ================= -->
+        <section id="login-view" class="view-hidden flex justify-center items-center py-20">
+            <div class="bg-white p-10 rounded-2xl organic-shadow w-full max-w-md border border-organic-100">
+                <div class="text-center mb-8">
+                    <span class="text-4xl mb-4 block">🔐</span>
+                    <h2 class="font-serif text-2xl font-bold text-organic-900">Panel Administrativo</h2>
+                    <p class="text-sm text-organic-500 mt-2">Solo personal autorizado.</p>
+                </div>
+
+                <form id="login-form" class="space-y-5">
+                    <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 text-center"></div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-organic-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="vendor-email" required class="w-full px-4 py-3 rounded-xl border border-organic-200 focus:ring-2 focus:ring-organic-400 focus:border-organic-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-organic-700 mb-1">Contraseña</label>
+                        <input type="password" id="vendor-password" required class="w-full px-4 py-3 rounded-xl border border-organic-200 focus:ring-2 focus:ring-organic-400 focus:border-organic-400 outline-none transition-all">
+                        <p class="text-[10px] text-organic-400 mt-1">Bloqueo de seguridad: pegado inhabilitado.</p>
+                    </div>
+                    <button type="submit" class="w-full bg-organic-800 text-white font-bold py-3 rounded-xl hover:bg-organic-900 transition-colors mt-4">
+                        Ingresar
+                    </button>
+                    <button type="button" onclick="switchView('store-view')" class="w-full text-organic-500 text-sm hover:text-organic-800 mt-2">
+                        Volver a la tienda
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= DASHBOARD VIEW (VENDOR) ================= -->
+        <section id="dashboard-view" class="view-hidden space-y-8 pb-16">
+            <div class="flex justify-between items-center border-b border-organic-200 pb-4">
+                <h2 class="font-serif text-3xl font-bold text-organic-900">Resumen del Negocio</h2>
+                <button onclick="logoutVendor()" class="text-sm bg-organic-100 text-organic-700 px-4 py-2 rounded-lg hover:bg-organic-200 font-semibold">Cerrar Sesión</button>
+            </div>
+
+            <!-- Alerts -->
+            <div id="production-alert" class="hidden bg-accent text-white p-4 rounded-xl shadow-sm flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span class="font-semibold" id="alert-message"></span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl organic-shadow border border-organic-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-organic-500 font-semibold uppercase tracking-wider">Total Ingresos</p>
+                        <p class="text-4xl font-serif font-bold text-organic-900 mt-2" id="kpi-earnings">$0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-organic-100 flex items-center justify-center text-organic-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl organic-shadow border border-organic-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-organic-500 font-semibold uppercase tracking-wider">Unidades Vendidas</p>
+                        <p class="text-4xl font-serif font-bold text-organic-900 mt-2" id="kpi-units">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-organic-100 flex items-center justify-center text-organic-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl organic-shadow border border-organic-100">
+                    <h3 class="text-lg font-bold text-organic-800 mb-4">Ingresos y Ventas por Producto</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-2xl organic-shadow border border-organic-100">
+                    <h3 class="text-lg font-bold text-organic-800 mb-4">Producción (Stock) vs Demanda</h3>
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Inventory Management -->
+            <div class="bg-white rounded-2xl organic-shadow border border-organic-100 overflow-hidden">
+                <div class="bg-organic-50 px-6 py-4 border-b border-organic-100">
+                    <h3 class="text-lg font-bold text-organic-800">Gestión de Inventario y Precios</h3>
+                </div>
+                <div class="p-6 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-sm text-organic-500 uppercase tracking-wider border-b border-organic-100">
+                                <th class="pb-3">Producto</th>
+                                <th class="pb-3">Precio (COP)</th>
+                                <th class="pb-3">Stock Actual</th>
+                                <th class="pb-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list" class="text-organic-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            <div class="bg-white rounded-2xl organic-shadow border border-organic-100 overflow-hidden">
+                <div class="bg-organic-50 px-6 py-4 border-b border-organic-100">
+                    <h3 class="text-lg font-bold text-organic-800">Registro de Pedidos</h3>
+                </div>
+                <div class="p-6 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-sm text-organic-500 uppercase tracking-wider border-b border-organic-100">
+                                <th class="pb-3">Fecha</th>
+                                <th class="pb-3">Cliente</th>
+                                <th class="pb-3">Artículos</th>
+                                <th class="pb-3 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-list" class="text-organic-800 divide-y divide-organic-50">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= CART / CHECKOUT MODAL ================= -->
+    <div id="cart-modal" class="fixed inset-0 z-[100] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-organic-900/40 backdrop-blur-sm transition-opacity" onclick="toggleCart()"></div>
+        
+        <!-- Sidebar -->
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="cart-sidebar">
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-organic-100 flex justify-between items-center bg-organic-50">
+                <h2 class="font-serif text-2xl font-bold text-organic-900">Tu Cesta</h2>
+                <button onclick="toggleCart()" class="text-organic-400 hover:text-organic-800 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="flex-grow overflow-y-auto p-6 space-y-4" id="cart-items-container">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Checkout Section -->
+            <div class="border-t border-organic-100 p-6 bg-organic-50 space-y-6">
+                <div class="flex justify-between items-center text-lg font-bold text-organic-900">
+                    <span>Total Estimado</span>
+                    <span id="cart-total-price">$0</span>
+                </div>
+
+                <!-- Checkout Form -->
+                <form id="checkout-form" class="space-y-4 hidden">
+                    <h3 class="text-sm font-bold text-organic-700 uppercase tracking-wider border-b border-organic-200 pb-2">Información de Envío</h3>
+                    <div>
+                        <input type="text" id="c-name" required placeholder="Nombre Completo" class="w-full px-4 py-2 rounded-lg border border-organic-200 focus:ring-2 focus:ring-organic-400 outline-none text-sm">
+                    </div>
+                    <div>
+                        <input type="tel" id="c-phone" required placeholder="Teléfono de Contacto" class="w-full px-4 py-2 rounded-lg border border-organic-200 focus:ring-2 focus:ring-organic-400 outline-none text-sm">
+                    </div>
+                    <div>
+                        <textarea id="c-address" required placeholder="Dirección de Entrega" rows="2" class="w-full px-4 py-2 rounded-lg border border-organic-200 focus:ring-2 focus:ring-organic-400 outline-none text-sm resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-organic-800 text-white font-bold py-3 rounded-xl hover:bg-organic-900 transition-colors shadow-lg">
+                        Confirmar Pedido
+                    </button>
+                </form>
+                
+                <button id="start-checkout-btn" onclick="showCheckoutForm()" class="w-full bg-organic-600 text-white font-bold py-3 rounded-xl hover:bg-organic-700 transition-colors shadow-md">
+                    Proceder al Pago
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-organic-800 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-[200]">
+        <span id="toast-msg" class="font-semibold"></span>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- 1. STATE MANAGEMENT (LocalStorage) ---
+        const defaultProducts = [
+            { id: 'p1', name: 'Pulpa de Piña', price: 6500, stock: 40, emoji: '🍍', desc: 'Dulce, tropical y digestiva.' },
+            { id: 'p2', name: 'Pulpa de Maracuyá', price: 7000, stock: 35, emoji: '🍈', desc: 'Acidez perfecta, rica en vitaminas.' },
+            { id: 'p3', name: 'Pulpa de Guayaba', price: 5800, stock: 50, emoji: '🍐', desc: 'Aroma intenso y alto valor nutricional.' }
+        ];
+
+        let state = {
+            products: JSON.parse(localStorage.getItem('organic_products')) || defaultProducts,
+            orders: JSON.parse(localStorage.getItem('organic_orders')) || [],
+            cart: {} // { productId: quantity }
+        };
+
+        function saveState() {
+            localStorage.setItem('organic_products', JSON.stringify(state.products));
+            localStorage.setItem('organic_orders', JSON.stringify(state.orders));
+        }
+
+        // Formats currency
+        const formatMoney = (amount) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(amount);
+
+        // --- 2. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStore();
+            setupSecurity();
+            
+            // Check if vendor was already logged in (simple session flag)
+            if(sessionStorage.getItem('vendor_logged_in') === 'true') {
+                switchView('dashboard-view');
+            }
+        });
+
+        function switchView(viewId) {
+            document.getElementById('store-view').classList.add('view-hidden');
+            document.getElementById('login-view').classList.add('view-hidden');
+            document.getElementById('dashboard-view').classList.add('view-hidden');
+            
+            document.getElementById(viewId).classList.remove('view-hidden');
+            
+            if(viewId === 'dashboard-view') {
+                renderDashboard();
+            } else if (viewId === 'store-view') {
+                renderStore(); // Refresh stock view
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- 3. CLIENT STORE LOGIC ---
+        function renderStore() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            state.products.forEach(p => {
+                // Calculate available stock considering items already in cart
+                const inCart = state.cart[p.id] || 0;
+                const available = p.stock - inCart;
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-8 rounded-3xl organic-shadow border border-organic-50 flex flex-col relative overflow-hidden group";
+                
+                // Decorative shape
+                card.innerHTML = `
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-organic-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div class="text-6xl mb-6 relative z-10">${p.emoji}</div>
+                    <h3 class="font-serif text-2xl font-bold text-organic-900 mb-2 relative z-10">${p.name}</h3>
+                    <p class="text-organic-500 text-sm mb-6 flex-grow relative z-10">${p.desc}</p>
+                    
+                    <div class="flex flex-col gap-2 relative z-10">
+                        <div class="flex justify-between items-end">
+                            <span class="text-2xl font-bold text-organic-800">${formatMoney(p.price)}</span>
+                            <span class="text-xs font-semibold px-2 py-1 rounded-md ${available > 0 ? 'bg-organic-100 text-organic-700' : 'bg-red-50 text-red-600'}">
+                                Stock disponible: ${available}
+                            </span>
+                        </div>
+                        
+                        <button onclick="addToCart('${p.id}')" 
+                                class="w-full mt-4 py-3 rounded-xl font-bold transition-all shadow-sm ${available > 0 ? 'bg-organic-600 hover:bg-organic-700 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}"
+                                ${available <= 0 ? 'disabled' : ''}>
+                            ${available > 0 ? 'Agregar a la cesta' : 'Agotado'}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- 4. CART & CHECKOUT LOGIC ---
+        function addToCart(productId) {
+            const p = state.products.find(x => x.id === productId);
+            const inCart = state.cart[productId] || 0;
+            
+            if (inCart < p.stock) {
+                state.cart[productId] = inCart + 1;
+                updateCartBadge();
+                renderStore(); // Re-render to update available stock text
+                showToast(`Añadido: ${p.name}`);
+            } else {
+                showToast('No hay más stock disponible');
+            }
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const totalItems = Object.values(state.cart).reduce((a, b) => a + b, 0);
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            const sidebar = document.getElementById('cart-sidebar');
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => sidebar.classList.remove('translate-x-full'), 10);
+                renderCart();
+            } else {
+                sidebar.classList.add('translate-x-full');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.getElementById('checkout-form').classList.add('hidden');
+                    document.getElementById('start-checkout-btn').classList.remove('hidden');
+                }, 300);
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total-price');
+            const startBtn = document.getElementById('start-checkout-btn');
+            container.innerHTML = '';
+            
+            let total = 0;
+            let itemsCount = 0;
+
+            for (const [id, qty] of Object.entries(state.cart)) {
+                if (qty > 0) {
+                    const p = state.products.find(x => x.id === id);
+                    const subtotal = p.price * qty;
+                    total += subtotal;
+                    itemsCount++;
+
+                    container.innerHTML += `
+                        <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-organic-100">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${p.emoji}</span>
+                                <div>
+                                    <h4 class="font-bold text-sm text-organic-900">${p.name}</h4>
+                                    <p class="text-xs text-organic-500">${formatMoney(p.price)} x ${qty}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="font-bold text-sm text-organic-800">${formatMoney(subtotal)}</span>
+                                <button onclick="removeFromCart('${id}')" class="text-[10px] text-red-500 hover:underline">Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            totalEl.innerText = formatMoney(total);
+
+            if (itemsCount === 0) {
+                container.innerHTML = '<p class="text-center text-organic-400 mt-10 text-sm">Tu cesta está vacía</p>';
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function removeFromCart(id) {
+            delete state.cart[id];
+            updateCartBadge();
+            renderCart();
+            renderStore();
+        }
+
+        function showCheckoutForm() {
+            document.getElementById('start-checkout-btn').classList.add('hidden');
+            document.getElementById('checkout-form').classList.remove('hidden');
+        }
+
+        // Handle Checkout Submit
+        document.getElementById('checkout-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Collect customer data
+            const customer = {
+                name: document.getElementById('c-name').value.trim(),
+                phone: document.getElementById('c-phone').value.trim(),
+                address: document.getElementById('c-address').value.trim()
+            };
+
+            // Build order items
+            const items = [];
+            let orderTotal = 0;
+            
+            for (const [id, qty] of Object.entries(state.cart)) {
+                if (qty > 0) {
+                    const p = state.products.find(x => x.id === id);
+                    items.push({
+                        productId: id,
+                        name: p.name,
+                        quantity: qty,
+                        price: p.price
+                    });
+                    orderTotal += (p.price * qty);
+                    
+                    // Deduct stock
+                    p.stock -= qty;
+                }
+            }
+
+            // Create Order
+            const newOrder = {
+                id: 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                date: new Date().toISOString(),
+                customer: customer,
+                items: items,
+                total: orderTotal
+            };
+
+            state.orders.unshift(newOrder); // Add to beginning
+            saveState(); // Persist changes
+            
+            // Clean up
+            state.cart = {};
+            updateCartBadge();
+            document.getElementById('checkout-form').reset();
+            toggleCart();
+            renderStore();
+            
+            showToast('¡Pedido realizado con éxito! Gracias por tu compra.');
+        });
+
+
+        // --- 5. VENDOR SECURITY & LOGIN ---
+        function setupSecurity() {
+            const passInput = document.getElementById('vendor-password');
+            // Strict NO PASTE policy
+            passInput.addEventListener('paste', e => e.preventDefault());
+            passInput.addEventListener('copy', e => e.preventDefault());
+        }
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('vendor-email').value.trim();
+            const pass = document.getElementById('vendor-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            // Hardcoded required credentials
+            if (email === 'pulpas26@gmail.com' && pass === 'pulpas26') {
+                sessionStorage.setItem('vendor_logged_in', 'true');
+                errorDiv.classList.add('hidden');
+                e.target.reset();
+                switchView('dashboard-view');
+            } else {
+                // Generic error message to prevent enumeration/leaks
+                errorDiv.innerText = "Credenciales incorrectas.";
+                errorDiv.classList.remove('hidden');
+                document.getElementById('vendor-password').value = ''; // clear pass
+            }
+        });
+
+        function logoutVendor() {
+            sessionStorage.removeItem('vendor_logged_in');
+            switchView('store-view');
+        }
+
+
+        // --- 6. VENDOR DASHBOARD & CHARTS ---
+        let salesChartInstance = null;
+        let stockChartInstance = null;
+
+        function renderDashboard() {
+            // Calculate KPIs
+            let totalEarnings = 0;
+            let totalUnitsSold = 0;
+            
+            // Aggregated sales data by product ID
+            const salesByProduct = {};
+            state.products.forEach(p => salesByProduct[p.id] = { name: p.name, units: 0, revenue: 0, currentStock: p.stock });
+
+            state.orders.forEach(order => {
+                totalEarnings += order.total;
+                order.items.forEach(item => {
+                    totalUnitsSold += item.quantity;
+                    if(salesByProduct[item.productId]) {
+                        salesByProduct[item.productId].units += item.quantity;
+                        salesByProduct[item.productId].revenue += (item.quantity * item.price);
+                    }
+                });
+            });
+
+            document.getElementById('kpi-earnings').innerText = formatMoney(totalEarnings);
+            document.getElementById('kpi-units').innerText = totalUnitsSold;
+
+            // Render Orders List
+            const ordersTbody = document.getElementById('orders-list');
+            ordersTbody.innerHTML = '';
+            if (state.orders.length === 0) {
+                ordersTbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-sm text-organic-400">No hay pedidos registrados.</td></tr>';
+            } else {
+                state.orders.forEach(order => {
+                    const date = new Date(order.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    const itemsDesc = order.items.map(i => `${i.quantity}x ${i.name}`).join('<br>');
+                    
+                    ordersTbody.innerHTML += `
+                        <tr class="text-sm">
+                            <td class="py-3 pr-4 whitespace-nowrap text-organic-500">${date}</td>
+                            <td class="py-3 pr-4">
+                                <p class="font-bold">${order.customer.name}</p>
+                                <p class="text-xs text-organic-500">${order.customer.phone}</p>
+                            </td>
+                            <td class="py-3 pr-4 text-xs leading-relaxed">${itemsDesc}</td>
+                            <td class="py-3 text-right font-bold text-organic-800">${formatMoney(order.total)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Inventory Editor
+            const invTbody = document.getElementById('inventory-list');
+            invTbody.innerHTML = '';
+            state.products.forEach(p => {
+                invTbody.innerHTML += `
+                    <tr class="text-sm border-b border-organic-50 last:border-0">
+                        <td class="py-3 pr-4 font-semibold flex items-center gap-2">
+                            <span>${p.emoji}</span> ${p.name}
+                        </td>
+                        <td class="py-3 pr-4">
+                            <input type="number" id="price-${p.id}" value="${p.price}" class="w-24 px-2 py-1 border border-organic-200 rounded outline-none focus:border-organic-500">
+                        </td>
+                        <td class="py-3 pr-4">
+                            <input type="number" id="stock-${p.id}" value="${p.stock}" class="w-20 px-2 py-1 border border-organic-200 rounded outline-none focus:border-organic-500">
+                        </td>
+                        <td class="py-3 text-right">
+                            <button onclick="saveProductEdit('${p.id}')" class="bg-organic-100 hover:bg-organic-200 text-organic-700 px-3 py-1 rounded font-semibold transition-colors text-xs">
+                                Actualizar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Analyze production vs sales for Alert
+            let alertTriggered = false;
+            let alertMsg = "";
+            for (const key in salesByProduct) {
+                const sp = salesByProduct[key];
+                // Logic: If we've sold more than we currently have in stock, production is lagging.
+                if (sp.units > 0 && sp.currentStock < sp.units) {
+                    alertTriggered = true;
+                    alertMsg += `La producción de <b>${sp.name}</b> (${sp.currentStock} und) está por debajo de las ventas históricas (${sp.units} und). `;
+                }
+            }
+            
+            const alertBox = document.getElementById('production-alert');
+            if (alertTriggered) {
+                document.getElementById('alert-message').innerHTML = alertMsg;
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+
+            // Draw Charts
+            drawCharts(salesByProduct);
+        }
+
+        function saveProductEdit(id) {
+            const newPrice = parseInt(document.getElementById(`price-${id}`).value);
+            const newStock = parseInt(document.getElementById(`stock-${id}`).value);
+            
+            if (isNaN(newPrice) || isNaN(newStock) || newPrice < 0 || newStock < 0) {
+                showToast("Valores inválidos");
+                return;
+            }
+
+            const pIndex = state.products.findIndex(x => x.id === id);
+            if (pIndex > -1) {
+                state.products[pIndex].price = newPrice;
+                state.products[pIndex].stock = newStock;
+                saveState();
+                showToast("Inventario actualizado");
+                renderDashboard(); // Full refresh of charts and alerts
+            }
+        }
+
+        function drawCharts(dataMap) {
+            const labels = [];
+            const revenueData = [];
+            const unitsSoldData = [];
+            const currentStockData = [];
+
+            for (const key in dataMap) {
+                labels.push(dataMap[key].name);
+                revenueData.push(dataMap[key].revenue);
+                unitsSoldData.push(dataMap[key].units);
+                currentStockData.push(dataMap[key].currentStock);
+            }
+
+            // Chart Colors matching Organic Theme
+            const colorOrganic = '#4c6846';
+            const colorAccent = '#d4a373';
+            const colorStock = '#83a17c';
+
+            // 1. Sales & Earnings Chart
+            const ctx1 = document.getElementById('salesChart').getContext('2d');
+            if (salesChartInstance) salesChartInstance.destroy();
+            
+            salesChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ingresos ($)',
+                            data: revenueData,
+                            backgroundColor: colorOrganic,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Unidades Vendidas',
+                            data: unitsSoldData,
+                            backgroundColor: colorAccent,
+                            type: 'line',
+                            borderColor: colorAccent,
+                            borderWidth: 2,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', ticks: { callback: function(value) { return '$' + value; } } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            // 2. Stock vs Demand Chart
+            const ctx2 = document.getElementById('stockChart').getContext('2d');
+            if (stockChartInstance) stockChartInstance.destroy();
+
+            stockChartInstance = new Chart(ctx2, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Stock Actual',
+                            data: currentStockData,
+                            backgroundColor: 'rgba(131, 161, 124, 0.4)', // colorStock
+                            borderColor: colorStock,
+                            pointBackgroundColor: colorStock
+                        },
+                        {
+                            label: 'Total Vendido (Demanda)',
+                            data: unitsSoldData,
+                            backgroundColor: 'rgba(212, 163, 115, 0.4)', // colorAccent
+                            borderColor: colorAccent,
+                            pointBackgroundColor: colorAccent
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: { font: { family: 'Nunito', size: 12 }, color: '#4c6846' }
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
